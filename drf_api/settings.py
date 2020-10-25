@@ -136,7 +136,7 @@ USE_TZ = True
 #    ("fonts", os.path.join(STATIC_ROOT,'fonts')),
 #)
 
-#STATIC_URL = '/static/'
+STATIC_URL = '/static/'
 
 
 try:
