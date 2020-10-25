@@ -114,9 +114,9 @@ class PostRateTest(TestCase):
 
     def setUp(self):
         self.client = Client()
-        self.uno = Car.objects.create(make="fiat", model="Uno")
-        self.picanto = Car.objects.create(make="kia", model="Picanto")
-        self.avensis = Car.objects.create(make="toyota", model="Avensis")
+        self.uno = Car.objects.create(make="FIAT", model="Uno")
+        self.picanto = Car.objects.create(make="KIA", model="Picanto")
+        self.avensis = Car.objects.create(make="TOYOTA", model="Avensis")
         self.to_post = [
             {"make": "kia", "model": "Picanto", "score": 3},
             {"make": "kia", "model": "Picanto", "score": 4},
@@ -148,11 +148,11 @@ class PostRateTest(TestCase):
         response = self.client.get(reverse('cars'))
         self.assertEqual(len(response.data), 3)
         for row in response.data:
-            if row.get("make") == "kia":
+            if row.get("make") == "KIA":
                 self.assertEqual(row["average_rate"], 3.0)
-            if row.get("make") == "toyota":
+            if row.get("make") == "TOYOTA":
                 self.assertEqual(row["average_rate"], 4.5)
-            if row.get("make") == "fiat":
+            if row.get("make") == "FIAT":
                 self.assertEqual(row["average_rate"], 2.5)
 
     def test_post_invalid_rate(self):
@@ -219,13 +219,56 @@ class PostRateTest(TestCase):
         self.assertTrue("honda" not in available_makes)
 
         # post valid json but such car is not in db:
-
         response = self.client.post(
             reverse("rate"),
             data=json.dumps(non_available_rate),
             content_type='application/json'
         )
         self.assertEqual(response.status_code, 404)
+
+    def test_post_case_sensitivity(self):
+        "Check if posting is case sensitive"
+        to_post = {"make": "honda", "model": "Civic"}
+        # check what is in DB
+        response = self.client.get(reverse("cars"))
+        self.assertEqual(len(response.data), 3)
+        available_models = [row["model"] for row in response.data]
+        self.assertTrue("Civic" not in available_models)
+        # post new make"
+        response = self.client.post(
+            reverse("cars"),
+            data=json.dumps(to_post),
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, 200)
+
+        # See what available makes are:
+        response = self.client.get(reverse("cars"))
+        available_makes = [row["make"] for row in response.data]
+        self.assertTrue("HONDA" in available_makes)
+
+        # define two jsons with differently 'cased' makes and post
+        rate1 = {"make": "HONDA", "model": "Civic", "score": 4}
+        response = self.client.post(
+            reverse("rate"),
+            data=json.dumps(rate1),
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, 200)
+        rate2 = {"make": "honda", "model": "Civic", "score": 2}
+        response = self.client.post(
+            reverse("rate"),
+            data=json.dumps(rate2),
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, 200)
+
+        response = self.client.get(reverse("cars"))
+        civic = [item for item in response.data if item["model"] == "Civic"][0]
+
+        # assert honda Civic was rated twice, has average rate 3
+        self.assertEqual(civic["average_rate"], 3)
+        self.assertEqual(civic["number_of_rates"], 2)
 
 
 class IntegrationTest(TestCase):
@@ -242,12 +285,12 @@ class IntegrationTest(TestCase):
                         ]
 
         self.to_rate = [
-            {"make": "fiat", "model": "500L", "score": 3},
-            {"make": "fiat", "model": "500L", "score": 4},
-            {"make": "fiat", "model": "500L", "score": 2},
-            {"make": "fiat", "model": "500", "score": 5},
-            {"make": "fiat", "model": "500", "score": 4},
-            {"make": "fiat", "model": "Strada", "score": 5},
+            {"make": "FIAT", "model": "500L", "score": 3},
+            {"make": "FIAT", "model": "500L", "score": 4},
+            {"make": "FIAT", "model": "500L", "score": 2},
+            {"make": "FIAT", "model": "500", "score": 5},
+            {"make": "FIAT", "model": "500", "score": 4},
+            {"make": "FIAT", "model": "Strada", "score": 5},
         ]
 
     def test_whole_process(self):

@@ -34,9 +34,12 @@ def cars(request):
             raise NotFound()
         else:
             # saving to db, but if it already exist, will not be created again
+            # The list if has item returned, will always have 1 item, so access
+            # it by index
+            car = item_in_api[0]
             Car.objects.get_or_create(
-                make=request.data["make"],
-                model=request.data["model"])
+                make=car["Make_Name"],
+                model=car["Model_Name"])
         return Response(request.data)
 
 
@@ -49,7 +52,9 @@ def rate(request):
     data = request.data
     if not ("make" in data and "model" in data and "score" in data):
         raise BadRequest()
-    car = Car.objects.filter(model=data["model"], make=data["make"])
+    if not isinstance(data["score"], int):
+        raise BadRequest()
+    car = Car.objects.filter(model=data["model"], make=data["make"].upper())
     if not car:
         raise NotFound('Rate was given to nonexistent car')
     else:
