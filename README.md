@@ -29,7 +29,7 @@ If one opens at http://127.0.0.1:8000, they will be redirected to /cars page
         }
     ```
     a module get_external_data() from helpers.py checks if such car exists in external API, if so it is saved in our database
-    if not - user is informed such car does not exist (error 404)
+    if not - user is informed such car does not exist (error 404);
     module validate_car_data() checks for posted data validity
     if user sends data in wrong format, they receive bad request (error 400)
 
@@ -48,8 +48,8 @@ If one opens at http://127.0.0.1:8000, they will be redirected to /cars page
         }
     ```
     Validations are performed: 
-    if car exists in DB (error 404)
-    if data is in proper format (error 400)
+    - if car exists in DB (error 404)
+    - if data is in proper format (error 400)
     Rating is case insensitive, one can sends json with car make in uppercase or lowercase, they will rate the same car.
 
 ### `/popular`
@@ -78,7 +78,7 @@ If one opens at http://127.0.0.1:8000, they will be redirected to /cars page
 ```
 
 10. API is available on heroku: [cars](https://drf-cars-api.herokuapp.com/cars/) for cars, 
-     [rate](https://drf-cars-api.herokuapp.com/rate/) for rating
+     [rate](https://drf-cars-api.herokuapp.com/rate/) for rating,
       [popularity](https://drf-cars-api.herokuapp.com/popular/) for popularity check
 
 
