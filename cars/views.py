@@ -1,5 +1,5 @@
 import json
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.db import IntegrityError
 from django.core.exceptions import ValidationError
 
@@ -9,8 +9,14 @@ from rest_framework import status
 
 from .models import Car, Rate
 from .serializers import CarSerializer, RateSerializer
-from .utils import get_external_data
+from .helpers import get_external_data, validate_car_data, validate_score_data
 from .exceptions import BadRequest, NotFound
+
+
+@api_view(['GET'])
+def home(request):
+    response = redirect('/cars')
+    return response
 
 
 @api_view(['GET', 'POST'])
@@ -26,10 +32,11 @@ def cars(request):
         return Response(serializer.data)
 
     else:
-        # insert a new record for a car if exists in external DB
-        if not ("make" in request.data and "model" in request.data):
+        # validate data, insert a new record for a car if exists in external DB
+        data = request.data
+        if not validate_car_data(data):
             raise BadRequest()
-        item_in_api = get_external_data(request.data)
+        item_in_api = get_external_data(data)
         if not item_in_api:
             raise NotFound()
         else:
@@ -40,7 +47,7 @@ def cars(request):
             Car.objects.get_or_create(
                 make=car["Make_Name"],
                 model=car["Model_Name"])
-        return Response(request.data)
+        return Response(data)
 
 
 @api_view(['POST'])
@@ -50,9 +57,7 @@ def rate(request):
     accepted data format i.e {"make": "fiat", "model": "Strada", "score": 3}
     """
     data = request.data
-    if not ("make" in data and "model" in data and "score" in data):
-        raise BadRequest()
-    if not isinstance(data["score"], int):
+    if not validate_score_data(data):
         raise BadRequest()
     car = Car.objects.filter(model=data["model"], make=data["make"].upper())
     if not car:

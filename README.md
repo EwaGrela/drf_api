@@ -27,8 +27,9 @@ Open app on: http://127.0.0.1:8000/cars
             "model": "Civic"
         }
     ```
-    a module get_external_data() from utils.py checks if such car exists in external API, if so it is saved in our database
+    a module get_external_data() from helpers.py checks if such car exists in external API, if so it is saved in our database
     if not - user is informed such car does not exist (error 404)
+    module validate_car_data() checks for posted data validity
     if user sends data in wrong format, they receive bad request ( error 400)
 
 ### `/rate`
@@ -50,27 +51,28 @@ Open app on: http://127.0.0.1:8000/cars
     a list of cars present in database is returned, all sorted based on their popularity - number of times they were rated (not sum of rates or average rate)
 
 6. postgreSQL is used as database (switched from SQLite in order to persist data on heroku)
+
 7. Tests for API are written in tests.py file, in order to run them:
 ```bash
     cd drf_api
     sudo docker-compose run web python manage.py test 
 ```
-8. File requirements.txt contains requirements necessary to run app, to create and activate it locally:
+8. File requirements.txt contains requirements necessary to run app and create virtual environment.
+    To create virtual environment do the following:
 
 ```bash
       pip install venv
       source venv/bin/activate
       pip install -r requirements.txt
 ```
-
-9.  In order to autoformat code activate virtual environment and run:
+9.  In order to autoformat code activate virtual environment (step 8) and run:
 ```bash
      autopep8 --in-place --aggressive --aggressive *.py
 ```
 
 10. API is available on heroku: [cars](https://drf-cars-api.herokuapp.com/cars/) for cars, 
      [rate](https://drf-cars-api.herokuapp.com/rate/) for rating
-      [popularity] (https://drf-cars-api.herokuapp.com/popular/) for popularity check
+      [popularity](https://drf-cars-api.herokuapp.com/popular/) for popularity check
 
 
 

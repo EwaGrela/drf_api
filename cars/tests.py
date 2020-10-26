@@ -1,4 +1,5 @@
 import json
+
 from django.test import TestCase, Client
 from django.urls import reverse
 
@@ -199,6 +200,14 @@ class PostRateTest(TestCase):
         )
         self.assertEqual(response.status_code, 400)
 
+        score_as_str = {"make": "kia", "model": "Picanto", "score": "4"}
+        response = self.client.post(
+            reverse("rate"),
+            data=json.dumps(score_as_str),
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, 400)
+
         # good format, but score out of range:
         wrong_score_rate = {"make": "fiat", "model": "Uno", "score": 10}
 
@@ -211,14 +220,13 @@ class PostRateTest(TestCase):
 
         response = self.client.get(reverse("cars"))
 
-        # post data in right format, car exists in external API, but does not exist in internal db:
-        # check what car makes are in db
+        # post data in right format, car exists in external API, but does not
+        # exist in internal db:
         response = self.client.get(reverse("cars"))
         non_available_rate = {"make": "honda", "model": "Accord", "score": 3}
         available_makes = [row["make"] for row in response.data]
-        self.assertTrue("honda" not in available_makes)
 
-        # post valid json but such car is not in db:
+        self.assertTrue("honda" not in available_makes)
         response = self.client.post(
             reverse("rate"),
             data=json.dumps(non_available_rate),
@@ -229,7 +237,7 @@ class PostRateTest(TestCase):
     def test_post_case_sensitivity(self):
         "Check if posting is case sensitive"
         to_post = {"make": "honda", "model": "Civic"}
-        # check what is in DB
+        # check what cars are in DB
         response = self.client.get(reverse("cars"))
         self.assertEqual(len(response.data), 3)
         available_models = [row["model"] for row in response.data]
@@ -266,7 +274,7 @@ class PostRateTest(TestCase):
         response = self.client.get(reverse("cars"))
         civic = [item for item in response.data if item["model"] == "Civic"][0]
 
-        # assert honda Civic was rated twice, has average rate 3
+        # assert honda Civic was rated twice and has average rate 3
         self.assertEqual(civic["average_rate"], 3)
         self.assertEqual(civic["number_of_rates"], 2)
 
